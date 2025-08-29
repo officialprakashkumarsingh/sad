@@ -6,8 +6,10 @@ import 'package:flutter/services.dart';
 
 import '../../../core/models/message_model.dart';
 import '../../../core/services/api_service.dart';
+import '../../../core/services/brave_search_service.dart';
 import '../../../core/services/template_service.dart';
 import '../../../core/services/message_mode_service.dart';
+import '../../../core/services/web_search_service.dart';
 import '../../../core/services/model_service.dart';
 import '../../../core/services/image_service.dart';
 import '../../../core/services/export_service.dart';
@@ -759,6 +761,32 @@ class _ChatPageState extends State<ChatPage> {
 
             await _handleImageModelResponse(prompt, model, messageIndex, 1, 0);
 
+          } else if (functionName == 'web_search') {
+            final query = arguments['query'] as String;
+
+            if (WebSearchService.instance.isWebSearchEnabled) {
+              // Update the message to show that we are searching the web
+              setState(() {
+                _messages[messageIndex] = Message.assistant('Searching the web for: $query', isStreaming: false);
+              });
+
+              final searchResults = await BraveSearchService.instance.search(query);
+              final newHistory = history..add({'role': 'assistant', 'content': searchResults});
+
+              await _handleModelResponse(
+                'Based on the search results, answer the user\'s query.',
+                model,
+                newHistory,
+                messageIndex,
+                totalModels,
+                modelIndex,
+              );
+            } else {
+              // Web search is disabled
+              setState(() {
+                _messages[messageIndex] = Message.assistant('Web search is disabled. Please enable it in the settings.', isStreaming: false);
+              });
+            }
           }
           // Since a tool was called, we break the loop for this model's response.
           break;

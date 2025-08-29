@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/speech_service.dart';
+import '../../../core/services/web_search_service.dart';
 
 import '../../../core/services/prompt_enhancer_service.dart';
 import '../../../core/services/ad_service.dart';
@@ -486,12 +487,17 @@ class _ChatInputState extends State<ChatInput> with TickerProviderStateMixin {
   }
 
   void _showExtensionsSheet() {
+    final webSearchService = WebSearchService.instance;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _ExtensionsBottomSheet(
-
+        isWebSearchEnabled: webSearchService.isWebSearchEnabled,
+        onWebSearchToggle: (enabled) {
+          webSearchService.setWebSearchEnabled(enabled);
+          Navigator.pop(context);
+        },
         imageGenerationMode: _imageGenerationMode,
         diagramGenerationMode: _diagramGenerationMode,
         presentationGenerationMode: _presentationGenerationMode,
@@ -838,6 +844,8 @@ class _ExtensionsBottomSheet extends StatelessWidget {
   final bool chartGenerationMode;
   final bool flashcardGenerationMode;
   final bool quizGenerationMode;
+  final bool isWebSearchEnabled;
+  final Function(bool) onWebSearchToggle;
   final VoidCallback onImageUpload;
   final VoidCallback onPdfUpload;
   final Function(bool) onImageModeToggle;
@@ -855,6 +863,8 @@ class _ExtensionsBottomSheet extends StatelessWidget {
     this.chartGenerationMode = false,
     this.flashcardGenerationMode = false,
     this.quizGenerationMode = false,
+    required this.isWebSearchEnabled,
+    required this.onWebSearchToggle,
     required this.onImageUpload,
     required this.onPdfUpload,
     required this.onImageModeToggle,
@@ -906,6 +916,16 @@ class _ExtensionsBottomSheet extends StatelessWidget {
                         icon: CupertinoIcons.folder,
                         title: 'Upload File',
                         onTap: onPdfUpload,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _ExtensionTile(
+                        icon: CupertinoIcons.search,
+                        title: 'Web Search',
+                        subtitle: '',
+                        isToggled: isWebSearchEnabled,
+                        onTap: () => onWebSearchToggle(!isWebSearchEnabled),
                       ),
                     ),
                   ],

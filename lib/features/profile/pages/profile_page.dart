@@ -6,8 +6,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../settings/pages/theme_selector_page.dart';
 import '../../settings/widgets/message_mode_selector.dart';
+import '../../settings/widgets/settings_switch_tile.dart';
 import '../../chat/widgets/model_selector_sheet.dart';
 import '../../../core/services/model_service.dart';
+import '../../../core/services/web_search_service.dart';
 import '../../../core/services/image_service.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/app_update_service.dart';
@@ -175,6 +177,9 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                     ),
                     const SizedBox(height: 8),
                     
+                    // Web Search
+                    _buildWebSearchSection(),
+
                     // Multiple Models
                     _buildMultipleModelsSection(),
                     
@@ -1003,6 +1008,32 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
       builder: (context) => _ImageModelSelectorSheet(),
     );
   }
+
+  Widget _buildWebSearchSection() {
+    return ListenableBuilder(
+      listenable: WebSearchService.instance,
+      builder: (context, _) {
+        final webSearchService = WebSearchService.instance;
+
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: SettingsSwitchTile(
+            title: 'Web Search',
+            subtitle: 'Enable or disable web search',
+            value: webSearchService.isWebSearchEnabled,
+            onChanged: (value) {
+              webSearchService.setWebSearchEnabled(value);
+            },
+            icon: CupertinoIcons.search,
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _ImageModelSelectorSheet extends StatelessWidget {
@@ -1278,37 +1309,12 @@ class _AboutBottomSheetState extends State<_AboutBottomSheet> {
                 Center(
                   child: Column(
                     children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: 'अ',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
                       RichText(
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: 'अहम्',
-                              style: GoogleFonts.poppins(
+                              text: 'Aham',
+                              style: GoogleFonts.inter(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w600,
                                 color: theme.colorScheme.onSurface,
@@ -1317,7 +1323,7 @@ class _AboutBottomSheetState extends State<_AboutBottomSheet> {
                             TextSpan(
                               text: 'AI',
                               style: GoogleFonts.inter(
-                                fontSize: 26,
+                                fontSize: 28,
                                 fontWeight: FontWeight.w700,
                                 color: theme.colorScheme.primary,
                               ),
@@ -1388,7 +1394,6 @@ class _AboutBottomSheetState extends State<_AboutBottomSheet> {
                 _buildFeatureItem(context, 'Multi-model AI chat'),
                 _buildFeatureItem(context, 'Image generation'),
                 _buildFeatureItem(context, 'Vision analysis'),
-                _buildFeatureItem(context, 'Web search'),
                 _buildFeatureItem(context, 'Presentations'),
                 _buildFeatureItem(context, 'Charts & diagrams'),
                 _buildFeatureItem(context, 'Flashcards & quiz'),

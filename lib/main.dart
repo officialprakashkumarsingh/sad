@@ -7,6 +7,7 @@ import 'core/services/app_service.dart';
 import 'core/services/model_service.dart';
 import 'core/services/speech_service.dart';
 import 'core/services/tts_service.dart';
+import 'core/services/web_search_service.dart';
 import 'theme/providers/theme_provider.dart';
 import 'features/splash/pages/splash_page.dart';
 import 'utils/app_scroll_behavior.dart';
@@ -20,6 +21,7 @@ void main() async {
   // Initialize core services
   await AppService.initialize();
   await SpeechService.instance.initialize();
+  await WebSearchService.instance.loadWebSearchSetting();
 
   // Initialize theme provider before running the app
   final themeProvider = ThemeProvider();
@@ -41,6 +43,7 @@ class AhamAIApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: ModelService.instance),
         ChangeNotifierProvider.value(value: SpeechService.instance),
         ChangeNotifierProvider.value(value: TtsService.instance),
+        ChangeNotifierProvider.value(value: WebSearchService.instance),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
