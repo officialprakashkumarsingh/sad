@@ -5,12 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class BraveSearchService {
   static final BraveSearchService instance = BraveSearchService._internal();
-  BraveSearchService._internal();
+  BraveSearchService._internal() {
+    initialize();
+  }
 
   List<String> _apiKeys = [];
   int _currentApiKeyIndex = 0;
 
-  Future<void> _loadApiKeys() async {
+  Future<void> initialize() async {
     final keysString = dotenv.env['BRAVE_API_KEYS'];
     if (keysString != null && keysString.isNotEmpty) {
       _apiKeys = keysString.split(',');
@@ -33,7 +35,6 @@ class BraveSearchService {
   }
 
   Future<String> search(String query) async {
-    await _loadApiKeys();
     if (_apiKeys.isEmpty) {
       return 'Error: No Brave API keys configured.';
     }

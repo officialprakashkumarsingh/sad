@@ -763,24 +763,60 @@ class _ChatPageState extends State<ChatPage> {
 
           } else if (functionName == 'web_search') {
             final query = arguments['query'] as String;
+            final toolCallId = toolCall['id'] as String;
 
             if (WebSearchService.instance.isWebSearchEnabled) {
               // Update the message to show that we are searching the web
               setState(() {
-                _messages[messageIndex] = Message.assistant('Searching the web for: $query', isStreaming: false);
+                _messages[messageIndex] = Message.assistant('Searching the web for: "$query"', isStreaming: false);
               });
 
               final searchResults = await BraveSearchService.instance.search(query);
-              final newHistory = history..add({'role': 'assistant', 'content': searchResults});
 
-              await _handleModelResponse(
-                'Based on the search results, answer the user\'s query.',
-                model,
-                newHistory,
-                messageIndex,
-                totalModels,
-                modelIndex,
+              // Add the tool message to the list of messages
+              final toolMessage = Message(
+                id: 'tool_${DateTime.now().millisecondsSinceEpoch}',
+                content: searchResults,
+                type: MessageType.tool,
+                timestamp: DateTime.now(),
+                toolCallId: toolCallId,
               );
+              _addMessage(toolMessage);
+              ChatHistoryService.instance.saveMessage(toolMessage);
+
+              // Get the updated history
+              final newHistory = _messages
+                  .where((m) => !m.isStreaming && !m.hasError)
+                  .map((m) => m.toApiFormat())
+                  .toList();
+
+              // Send the updated history back to the model
+              final stream = await ApiService.sendMessage(
+                message: '', // No new message, just the history
+                model: model,
+                conversationHistory: newHistory,
+              );
+
+              // Process the stream for the final response
+              String fullResponse = '';
+              await for (final chunk in stream) {
+                if (mounted) {
+                  fullResponse += chunk;
+                  setState(() {
+                    _messages[messageIndex] = Message.assistant(
+                      fullResponse,
+                      isStreaming: false,
+                    );
+                  });
+                  _scrollToBottom();
+                }
+              }
+              // Save the final response
+              ChatHistoryService.instance.saveMessage(
+                _messages[messageIndex],
+              ).catchError((e) {
+                print('Error saving AI response: $e');
+              });
             } else {
               // Web search is disabled
               setState(() {

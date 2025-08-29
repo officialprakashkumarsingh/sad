@@ -6,10 +6,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../settings/pages/theme_selector_page.dart';
 import '../../settings/widgets/message_mode_selector.dart';
-import '../../settings/widgets/settings_switch_tile.dart';
 import '../../chat/widgets/model_selector_sheet.dart';
 import '../../../core/services/model_service.dart';
-import '../../../core/services/web_search_service.dart';
 import '../../../core/services/image_service.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/app_update_service.dart';
@@ -177,9 +175,6 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                     ),
                     const SizedBox(height: 8),
                     
-                    // Web Search
-                    _buildWebSearchSection(),
-
                     // Multiple Models
                     _buildMultipleModelsSection(),
                     
@@ -1006,32 +1001,6 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _ImageModelSelectorSheet(),
-    );
-  }
-
-  Widget _buildWebSearchSection() {
-    return ListenableBuilder(
-      listenable: WebSearchService.instance,
-      builder: (context, _) {
-        final webSearchService = WebSearchService.instance;
-
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: SettingsSwitchTile(
-            title: 'Web Search',
-            subtitle: 'Enable or disable web search',
-            value: webSearchService.isWebSearchEnabled,
-            onChanged: (value) {
-              webSearchService.setWebSearchEnabled(value);
-            },
-            icon: CupertinoIcons.search,
-          ),
-        );
-      },
     );
   }
 }
